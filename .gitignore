@@ -32,7 +32,7 @@
 *.app
 
 # c++ files
-src/main.cpp
+main.cpp
 
 # directories
 bin/

@@ -1,5 +1,2 @@
-# 定义SRC_LIST 包含所有目录源文件
-aux_source_directory(. SRC_LIST)
-
-# 指定生成可执行文件
-add_executable(ThreadPool ${SRC_LIST})
+add_subdirectory(v1)
+add_subdirectory(v2)
