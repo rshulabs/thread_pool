@@ -11,7 +11,7 @@ public:
     Any run()
     {
         cout << "tid:" << this_thread::get_id() << " begin" << endl;
-        // this_thread::sleep_for(chrono::seconds(2));
+        this_thread::sleep_for(chrono::seconds(1));
         int sum = 0;
         for (int i = begin_; i < end_; i++)
         {
@@ -31,7 +31,7 @@ int main()
     {
         ThreadPool pool;
         pool.setMode(PoolMode::MODE_CACHED);
-        pool.start(4);
+        pool.start();
         Result res1 = pool.submitTask(std::make_shared<MyTask>(1, 10000));
         int sum1 = res1.get().cast_<int>();
         Result res2 = pool.submitTask(std::make_shared<MyTask>(10001, 20000));
@@ -47,6 +47,7 @@ int main()
         pool.submitTask(std::make_shared<MyTask>(20001, 100000));
         cout << sum1 + sum2 + sum3 << endl;
     }
+    cout << "main over!" << endl;
     getchar();
     return 0;
 }

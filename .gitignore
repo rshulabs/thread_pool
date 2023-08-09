@@ -32,8 +32,8 @@
 *.app
 
 # c++ files
-main.cpp
+src/main.cpp
 
 # directories
-bin
-build
+bin/
+build/

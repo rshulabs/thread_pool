@@ -188,7 +188,7 @@ public:
     Result submitTask(std::shared_ptr<Task> sp);
 
     // 开启线程池
-    void start(int initThreadSize = 4);
+    void start(int initThreadSize = std::thread::hardware_concurrency());
 
     // 禁止对象构造
     ThreadPool(const ThreadPool &) = delete;

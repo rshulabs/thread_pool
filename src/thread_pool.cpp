@@ -178,7 +178,7 @@ bool ThreadPool::checkRunningState() const
 void ThreadPool::threadFunc(int threadId)
 {
     auto lastTime = std::chrono::high_resolution_clock().now();
-    while (isPoolRunning_)
+    for (;;)
     {
         std::shared_ptr<Task> task;
         {
@@ -186,8 +186,18 @@ void ThreadPool::threadFunc(int threadId)
             std::unique_lock<std::mutex> lock(taskQueMtx_);
 
             std::cout << std::this_thread::get_id() << "尝试获取任务" << std::endl;
+            // 双重判断，对应pool先拿到锁，形成死锁
             while (taskQue_.size() == 0)
             {
+                // 没有任务且已经析构，销毁线程池对象
+                if (!isPoolRunning_)
+                {
+                    // 把线程对象从线程容器里删除
+                    threads_.erase(threadId);
+                    std::cout << "threadid:" << std::this_thread::get_id() << " exit!" << std::endl;
+                    exitCond_.notify_all();
+                    return;
+                }
                 if (poolMode_ == PoolMode::MODE_CACHED)
                 {
                     // 每一秒返回一次
@@ -217,14 +227,14 @@ void ThreadPool::threadFunc(int threadId)
                     // 等待notEmpty条件 这里一直等待
                     notEmpty_.wait(lock);
                 }
-                if (!isPoolRunning_)
-                {
-                    // 把线程对象从线程容器里删除
-                    threads_.erase(threadId);
-                    std::cout << "threadid:" << std::this_thread::get_id() << " exit!" << std::endl;
-                    exitCond_.notify_all();
-                    return;
-                }
+                // if (!isPoolRunning_)
+                // {
+                //     // 把线程对象从线程容器里删除
+                //     threads_.erase(threadId);
+                //     std::cout << "threadid:" << std::this_thread::get_id() << " exit!" << std::endl;
+                //     exitCond_.notify_all();
+                //     return;
+                // }
             }
             // 消费了，空闲线程--
             idleThreadSize_--;
@@ -252,10 +262,6 @@ void ThreadPool::threadFunc(int threadId)
         idleThreadSize_++;
         lastTime = std::chrono::high_resolution_clock().now();
     }
-    // 把线程对象从线程容器里删除
-    threads_.erase(threadId);
-    std::cout << "threadid:" << std::this_thread::get_id() << " exit!" << std::endl;
-    exitCond_.notify_all();
 }
 
 /**
