@@ -9,6 +9,7 @@
 #include <functional>
 #include <thread>
 #include <iostream>
+#include <unordered_map>
 
 // Any类型：接收任意数据类型 这是一个模板类
 class Any
@@ -139,15 +140,20 @@ class Thread
 {
 public:
     // 通用函数类型，接受一个无参数且无返回值的函数
-    using ThreadFunc = std::function<void()>;
+    using ThreadFunc = std::function<void(int)>;
     Thread(ThreadFunc func);
     ~Thread();
 
     // 启动线程
     void start();
 
+    // 获取线程id
+    int getId() const;
+
 private:
     ThreadFunc func_;
+    static int genId_;
+    int threadId_; // 线程id
 };
 /**
  * example:
@@ -191,16 +197,17 @@ public:
 
 private:
     // 定义线程函数
-    void threadFunc();
+    void threadFunc(int threadId);
 
     // 检查pool运行状态
     bool checkRunningState() const;
 
 private:
-    std::vector<std::unique_ptr<Thread>> threads_; // 线程列表
-    int initThreadSize_;                           // 初始线程数量
-    int threadMaxSizeThreshold_;                   // 线程数量上限
-    std::atomic_int curThreadSize_;                // 当前线程总数量
+    // std::vector<std::unique_ptr<Thread>> threads_; // 线程列表
+    std::unordered_map<int, std::unique_ptr<Thread>> threads_; // 线程列表
+    int initThreadSize_;                                       // 初始线程数量
+    int threadMaxSizeThreshold_;                               // 线程数量上限
+    std::atomic_int curThreadSize_;                            // 当前线程总数量
 
     std::queue<std::shared_ptr<Task>> taskQue_; // 任务队列，用智能指针保证用户任务的管理
     std::atomic_int taskSize_;                  // 任务数量
@@ -209,6 +216,7 @@ private:
     std::mutex taskQueMtx_;            // 保证任务队列线程安全
     std::condition_variable notFull_;  // 任务队列不满
     std::condition_variable notEmpty_; // 任务队列不空
+    std::condition_variable exitCond_; // 等待线程资源回收
 
     PoolMode poolMode_;              // 线程池模式
     std::atomic_bool isPoolRunning_; // 线程池启动状态

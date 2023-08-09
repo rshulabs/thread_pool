@@ -31,6 +31,9 @@
 *.out
 *.app
 
+# c++ files
+main.cpp
+
 # directories
-./bin
-./build
+bin
+build
