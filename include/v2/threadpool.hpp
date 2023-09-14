@@ -16,7 +16,7 @@
  * package-task future版
  */
 
-const int THREAD_MAX_THRESHOLD = 2; // INT32_MAX;
+const int THREAD_MAX_THRESHOLD = 200; // INT32_MAX;
 const int TASK_MAX_THRESHOLD = 1024;
 const int THREAD_MAX_IDLE_TIME = 60; // 单位：秒
 

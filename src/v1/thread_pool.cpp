@@ -201,24 +201,21 @@ void ThreadPool::threadFunc(int threadId)
                 if (poolMode_ == PoolMode::MODE_CACHED)
                 {
                     // 每一秒返回一次
-                    while (taskQue_.size() == 0)
+                    // 超时返回
+                    if (std::cv_status::timeout == notEmpty_.wait_for(lock, std::chrono::seconds(1)))
                     {
-                        // 超时返回
-                        if (std::cv_status::timeout == notEmpty_.wait_for(lock, std::chrono::seconds(1)))
+                        auto now = std::chrono::high_resolution_clock().now();
+                        auto dur = std::chrono::duration_cast<std::chrono::seconds>(now - lastTime);
+                        if (dur.count() >= THREAD_MAX_IDLE_TIME && curThreadSize_ > initThreadSize_)
                         {
-                            auto now = std::chrono::high_resolution_clock().now();
-                            auto dur = std::chrono::duration_cast<std::chrono::seconds>(now - lastTime);
-                            if (dur.count() >= THREAD_MAX_IDLE_TIME && curThreadSize_ > initThreadSize_)
-                            {
-                                /*闲置了60s，回收当前线程*/
-                                // 把线程对象从线程容器里删除
-                                threads_.erase(threadId);
-                                // 记录线程数量的相关变量值修改
-                                curThreadSize_--;
-                                idleThreadSize_--;
-                                std::cout << "threadid:" << std::this_thread::get_id() << " exit!" << std::endl;
-                                return;
-                            }
+                            /*闲置了60s，回收当前线程*/
+                            // 把线程对象从线程容器里删除
+                            threads_.erase(threadId);
+                            // 记录线程数量的相关变量值修改
+                            curThreadSize_--;
+                            idleThreadSize_--;
+                            std::cout << "threadid:" << std::this_thread::get_id() << " exit!" << std::endl;
+                            return;
                         }
                     }
                 }

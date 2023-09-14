@@ -89,7 +89,7 @@ public:
     {
         if (isExit_)
             return;
-        std::unique_lock<std::mutex> loc(mtx_);
+        std::unique_lock<std::mutex> lock(mtx_);
         resLimit_++;
         // 通知
         cond_.notify_all();
